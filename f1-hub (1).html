@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIT WALL // Сезон 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0C10;
+    --surface:#14161B;
+    --surface-2:#1B1E24;
+    --line:#262A31;
+    --text:#ECEDF0;
+    --muted:#8B92A0;
+    --red:#E10600;
+    --green:#00E08A;
+    --amber:#FFB020;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  ::selection{background:var(--red); color:#fff;}
+
+  /* background grid texture */
+  body::before{
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:.35;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* cursor sector-light */
+  #cursor-glow{
+    position:fixed;
+    width:520px; height:520px;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:1;
+    background:radial-gradient(circle, rgba(225,6,0,.10) 0%, rgba(225,6,0,0) 70%);
+    transform:translate(-50%,-50%);
+    transition:opacity .3s ease;
+    will-change:transform;
+  }
+  #cursor-dot{
+    position:fixed;
+    width:6px; height:6px;
+    background:var(--green);
+    border-radius:50%;
+    box-shadow:0 0 8px var(--green), 0 0 18px rgba(0,224,138,.5);
+    pointer-events:none;
+    z-index:2;
+    transform:translate(-50%,-50%);
+    will-change:transform;
+  }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px; position:relative; z-index:3;}
+
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:20;
+    background:rgba(11,12,16,.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:64px;}
+  .logo{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700; font-size:18px; letter-spacing:.04em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo::before{
+    content:'';
+    width:10px; height:10px; background:var(--red); border-radius:2px;
+    box-shadow:0 0 10px rgba(225,6,0,.7);
+  }
+  .navlinks{display:flex; gap:28px; font-size:14px; color:var(--muted);}
+  .navlinks a{color:var(--muted); text-decoration:none; transition:color .2s;}
+  .navlinks a:hover{color:var(--text);}
+
+  /* HERO */
+  header.hero{padding:88px 0 64px; position:relative;}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px; letter-spacing:.12em; color:var(--green);
+    display:flex; align-items:center; gap:10px; margin-bottom:20px;
+  }
+  .eyebrow::before{content:''; width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  h1.title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(40px, 6vw, 76px);
+    line-height:1.02;
+    letter-spacing:-.01em;
+    max-width:820px;
+  }
+  h1.title span{color:var(--red);}
+  .hero-sub{color:var(--muted); font-size:16px; max-width:560px; margin-top:20px; line-height:1.6;}
+
+  .telemetry-row{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:1px; background:var(--line);
+    margin-top:56px; border:1px solid var(--line);
+  }
+  .telemetry-cell{
+    background:var(--surface); padding:20px 22px;
+  }
+  .telemetry-cell .val{font-family:'JetBrains Mono', monospace; font-size:28px; font-weight:700; color:var(--text);}
+  .telemetry-cell .lab{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:6px;}
+
+  /* SECTION HEADERS */
+  .section{padding:80px 0;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:36px; border-bottom:1px solid var(--line); padding-bottom:20px;}
+  .section-head h2{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:28px;}
+  .section-head .count{font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:13px;}
+
+  /* TEAM CARDS */
+  .grid-teams{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px;}
+  .team-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent, var(--red));
+    border-radius:6px;
+    padding:22px;
+    overflow:hidden;
+    cursor:default;
+    transition:transform .15s ease, border-color .2s;
+  }
+  .team-card::before{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%), color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+    opacity:0; transition:opacity .25s ease;
+    pointer-events:none;
+  }
+  .team-card:hover::before{opacity:1;}
+  .team-card:hover{transform:translateY(-3px);}
+  .team-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;}
+  .team-name{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:18px;}
+  .team-titles{text-align:right;}
+  .team-titles .n{font-family:'JetBrains Mono', monospace; font-size:24px; font-weight:700; color:var(--accent);}
+  .team-titles .t{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+  .drivers{display:flex; flex-direction:column; gap:8px; margin:14px 0;}
+  .driver{display:flex; align-items:center; gap:10px; font-size:14px;}
+  .driver .num{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--bg);
+    background:var(--accent); border-radius:3px; padding:2px 6px; min-width:26px; text-align:center; font-weight:700;
+  }
+  .team-note{font-size:12.5px; color:var(--muted); line-height:1.5; border-top:1px solid var(--line); padding-top:12px; margin-top:4px;}
+
+  /* DRIVER CARDS */
+  .grid-drivers{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px;}
+  .driver-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px 22px;
+    overflow:hidden;
+    transition:transform .15s ease, border-color .2s;
+  }
+  .driver-card::before{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%), color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%);
+    opacity:0; transition:opacity .25s ease; pointer-events:none;
+  }
+  .driver-card:hover::before{opacity:1;}
+  .driver-card:hover{transform:translateY(-3px);}
+  .driver-top{display:flex; align-items:center; justify-content:space-between;}
+  .driver-id{display:flex; align-items:center; gap:12px;}
+  .driver-num-badge{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px;
+    background:var(--accent); color:var(--bg); border-radius:4px;
+    width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .driver-name-wrap .name{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15.5px;}
+  .driver-name-wrap .team-line{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .driver-titles{text-align:right; flex-shrink:0;}
+  .driver-titles .n{font-family:'JetBrains Mono', monospace; font-size:22px; font-weight:700; color:var(--accent);}
+  .driver-titles .t{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+  .champ-chip{
+    display:inline-block; margin-top:12px; font-family:'JetBrains Mono', monospace; font-size:10px;
+    color:var(--amber); border:1px solid rgba(255,176,32,.4); border-radius:3px; padding:1px 6px;
+  }
+  .driver-note{font-size:12.5px; color:var(--muted); line-height:1.5; border-top:1px solid var(--line); padding-top:12px; margin-top:14px;}
+
+  /* TRACK MODAL */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:50;
+    background:rgba(6,7,9,.75);
+    backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    opacity:0; pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .modal-overlay.open{opacity:1; pointer-events:auto;}
+  .modal-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    max-width:560px; width:100%; padding:32px;
+    position:relative;
+    transform:translateY(12px) scale(.98); transition:transform .2s ease;
+    max-height:86vh; overflow-y:auto;
+  }
+  .modal-overlay.open .modal-card{transform:translateY(0) scale(1);}
+  .modal-close{
+    position:absolute; top:18px; right:18px;
+    background:none; border:1px solid var(--line); color:var(--muted);
+    width:32px; height:32px; border-radius:6px; cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    transition:color .2s, border-color .2s;
+  }
+  .modal-close:hover{color:var(--text); border-color:#444;}
+  .modal-eyebrow{font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--green); letter-spacing:.1em; margin-bottom:8px;}
+  .modal-title{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:26px; margin-bottom:4px;}
+  .modal-sub{font-size:13.5px; color:var(--muted); margin-bottom:24px;}
+  .track-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:20px;}
+  .track-stat{background:var(--surface-2); padding:14px 16px;}
+  .track-stat .v{font-family:'JetBrains Mono', monospace; font-size:17px; font-weight:700;}
+  .track-stat .l{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:4px;}
+  .modal-note{font-size:14px; line-height:1.65; color:var(--text);}
+  .race-card{cursor:pointer;}
+  .race-card.cancelled{cursor:default;}
+
+  /* CALENDAR */
+  .grid-races{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:14px;}
+  .race-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px;
+    transition:transform .15s ease, border-color .2s;
+    overflow:hidden;
+  }
+  .race-card::before{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(200px circle at var(--mx,50%) var(--my,50%), rgba(0,224,138,.10), transparent 70%);
+    opacity:0; transition:opacity .25s ease; pointer-events:none;
+  }
+  .race-card:hover::before{opacity:1;}
+  .race-card:hover{transform:translateY(-3px); border-color:#333;}
+  .race-card.done{opacity:.55;}
+  .race-card.cancelled{opacity:.4;}
+  .race-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .race-round{font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted);}
+  .race-status{font-family:'JetBrains Mono', monospace; font-size:10px; padding:3px 8px; border-radius:20px; letter-spacing:.04em; text-transform:uppercase;}
+  .status-done{background:rgba(139,146,160,.12); color:var(--muted);}
+  .status-next{background:rgba(0,224,138,.14); color:var(--green);}
+  .status-upcoming{background:rgba(255,176,32,.12); color:var(--amber);}
+  .status-cancelled{background:rgba(225,6,0,.14); color:var(--red);}
+  .race-country{font-size:22px; margin-top:10px;}
+  .race-name{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:17px; margin-top:4px;}
+  .race-circuit{font-size:13px; color:var(--muted); margin-top:2px;}
+  .race-meta{display:flex; justify-content:space-between; align-items:flex-end; margin-top:18px; border-top:1px solid var(--line); padding-top:14px;}
+  .race-date{font-family:'JetBrains Mono', monospace; font-size:15px; font-weight:700;}
+  .race-len{font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); text-align:right;}
+  .sprint-tag{
+    display:inline-block; margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10px;
+    color:var(--amber); border:1px solid rgba(255,176,32,.4); border-radius:3px; padding:1px 6px;
+  }
+
+  footer{padding:40px 0 60px; border-top:1px solid var(--line); color:var(--muted); font-size:12.5px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  footer strong{color:var(--text);}
+
+  @media (max-width:640px){
+    .telemetry-row{grid-template-columns:repeat(2,1fr);}
+    .section-head{flex-direction:column; align-items:flex-start; gap:8px;}
+    #cursor-glow, #cursor-dot{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor-glow"></div>
+<div id="cursor-dot"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">PIT WALL</div>
+    <div class="navlinks">
+      <a href="#teams">Команды</a>
+      <a href="#drivers">Пилоты</a>
+      <a href="#calendar">Календарь</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">СЕЗОН 2026 // 77-Й ЧЕМПИОНАТ МИРА</div>
+    <h1 class="title">Стартовая решётка новой <span>гибридной эры</span> Формулы 1</h1>
+    <p class="hero-sub">Составы всех команд, их титулы конструкторов и полный календарь этапов сезона — от Мельбурна до Абу-Даби.</p>
+
+    <div class="telemetry-row">
+      <div class="telemetry-cell"><div class="val">11</div><div class="lab">команд на решётке</div></div>
+      <div class="telemetry-cell"><div class="val">22</div><div class="lab">пилота</div></div>
+      <div class="telemetry-cell"><div class="val">22</div><div class="lab">гонки в календаре</div></div>
+      <div class="telemetry-cell"><div class="val">2</div><div class="lab">этапа отменены</div></div>
+    </div>
+  </div>
+</header>
+
+<section class="section" id="teams">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Команды и пилоты</h2>
+      <div class="count">по кубкам конструкторов</div>
+    </div>
+    <div class="grid-teams" id="teamsGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="drivers">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Пилоты</h2>
+      <div class="count">по титулам чемпиона мира</div>
+    </div>
+    <div class="grid-drivers" id="driversGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="calendar">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Календарь гонок</h2>
+      <div class="count">даты · трасса · длина круга</div>
+    </div>
+    <div class="grid-races" id="racesGrid"></div>
+  </div>
+</section>
+
+<div class="modal-overlay" id="trackModal">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-eyebrow" id="modalEyebrow"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="track-stats" id="modalStats"></div>
+    <div class="modal-note" id="modalNote"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:10px;">
+    <div>PIT WALL — фан-проект, не связан с FIA или Formula 1.</div>
+    <div>Данные актуальны на <strong>16.07.2026</strong></div>
+  </div>
+</footer>
+
+<script>
+// ---------- DATA ----------
+const teams = [
+  {name:"McLaren", accent:"#FF8000", titles:10, note:"Действующий чемпион конструкторов и пилотов (Норрис) — доминирует новую гибридную эру.",
+   drivers:[{n:"81",name:"Оскар Пиастри"},{n:"4",name:"Ландо Норрис"}]},
+  {name:"Ferrari", accent:"#E8002D", titles:16, note:"Самая титулованная команда в истории Ф1, старт новой эры с опытным дуэтом.",
+   drivers:[{n:"16",name:"Шарль Леклер"},{n:"44",name:"Льюис Хэмилтон"}]},
+  {name:"Mercedes", accent:"#00D7B9", titles:8, note:"Ставка на молодость: Антонелли уже показывает победы в дебютном сезоне.",
+   drivers:[{n:"63",name:"Джордж Расселл"},{n:"12",name:"Антонелли"}]},
+  {name:"Red Bull Racing", accent:"#3671C6", titles:6, note:"Новая силовая установка Ford, новый напарник Ферстаппена.",
+   drivers:[{n:"1",name:"Макс Ферстаппен"},{n:"6",name:"Исак Хаджар"}]},
+  {name:"Williams", accent:"#1868DB", titles:9, note:"Опытный состав после возвращения на подиумы в 2025-м.",
+   drivers:[{n:"23",name:"Алекс Албон"},{n:"55",name:"Карлос Сайнс"}]},
+  {name:"Aston Martin", accent:"#229971", titles:0, note:"Новый двигатель Honda и Адриан Ньюи в проектировании шасси нового поколения.",
+   drivers:[{n:"14",name:"Фернандо Алонсо"},{n:"18",name:"Лэнс Стролл"}]},
+  {name:"Alpine", accent:"#FF87BC", titles:0, note:"Переход на силовые установки Mercedes, конец собственного мотора.",
+   drivers:[{n:"10",name:"Пьер Гасли"},{n:"43",name:"Франко Колапинто"}]},
+  {name:"Racing Bulls", accent:"#6C98FF", titles:0, note:"Младшая команда системы Red Bull, дебют молодого британца Линдблада.",
+   drivers:[{n:"30",name:"Лиам Лоусон"},{n:"41",name:"Арвид Линдблад"}]},
+  {name:"Audi", accent:"#BB0A30", titles:0, note:"Бывший Sauber, первый сезон как полноценная заводская команда Audi.",
+   drivers:[{n:"27",name:"Нико Хюлькенберг"},{n:"5",name:"Габриэл Бортолето"}]},
+  {name:"Haas", accent:"#B6BABD", titles:0, note:"Стабильный середняк решётки, ставка на опыт Окона.",
+   drivers:[{n:"31",name:"Эстебан Окон"},{n:"87",name:"Оливер Берман"}]},
+  {name:"Cadillac", accent:"#C9A227", titles:0, note:"11-я команда сезона — дебют американского бренда с опытнейшим дуэтом.",
+   drivers:[{n:"11",name:"Серхио Перес"},{n:"77",name:"Валттери Боттас"}]},
+];
+
+const races = [
+  {round:1, flag:"🇦🇺", country:"Австралия", circuit:"Альберт-Парк, Мельбурн", date:"08.03.2026", len:"5.278"},
+  {round:2, flag:"🇨🇳", country:"Китай", circuit:"Шанхай Интернешнл", date:"15.03.2026", len:"5.451", sprint:true},
+  {round:3, flag:"🇯🇵", country:"Япония", circuit:"Сузука", date:"29.03.2026", len:"5.807"},
+  {round:4, flag:"🇧🇭", country:"Бахрейн", circuit:"Сахир", date:"—", len:"—", cancelled:true},
+  {round:5, flag:"🇸🇦", country:"Саудовская Аравия", circuit:"Джидда", date:"—", len:"—", cancelled:true},
+  {round:6, flag:"🇺🇸", country:"США", circuit:"Майами", date:"03.05.2026", len:"5.412", sprint:true},
+  {round:7, flag:"🇨🇦", country:"Канада", circuit:"Монреаль", date:"24.05.2026", len:"4.361"},
+  {round:8, flag:"🇲🇨", country:"Монако", circuit:"Монте-Карло", date:"07.06.2026", len:"3.337"},
+  {round:9, flag:"🇪🇸", country:"Испания", circuit:"Барселона-Каталунья", date:"14.06.2026", len:"4.657"},
+  {round:10, flag:"🇦🇹", country:"Австрия", circuit:"Шпильберг", date:"28.06.2026", len:"4.318"},
+  {round:11, flag:"🇬🇧", country:"Великобритания", circuit:"Сильверстоун", date:"05.07.2026", len:"5.891", sprint:true},
+  {round:12, flag:"🇧🇪", country:"Бельгия", circuit:"Спа-Франкоршам", date:"19.07.2026", len:"7.004"},
+  {round:13, flag:"🇭🇺", country:"Венгрия", circuit:"Хунгароринг, Будапешт", date:"26.07.2026", len:"4.381"},
+  {round:14, flag:"🇳🇱", country:"Нидерланды", circuit:"Зандворт", date:"23.08.2026", len:"4.259", sprint:true},
+  {round:15, flag:"🇮🇹", country:"Италия", circuit:"Монца", date:"06.09.2026", len:"5.793"},
+  {round:16, flag:"🇪🇸", country:"Испания", circuit:"Мадринг, Мадрид", date:"13.09.2026", len:"5.474"},
+  {round:17, flag:"🇦🇿", country:"Азербайджан", circuit:"Баку", date:"26.09.2026", len:"6.003"},
+  {round:18, flag:"🇸🇬", country:"Сингапур", circuit:"Марина-Бэй", date:"11.10.2026", len:"4.940", sprint:true},
+  {round:19, flag:"🇺🇸", country:"США", circuit:"Остин (COTA)", date:"25.10.2026", len:"5.513"},
+  {round:20, flag:"🇲🇽", country:"Мексика", circuit:"Мехико", date:"01.11.2026", len:"4.304"},
+  {round:21, flag:"🇧🇷", country:"Бразилия", circuit:"Интерлагос, Сан-Паулу", date:"08.11.2026", len:"4.309"},
+  {round:22, flag:"🇺🇸", country:"США", circuit:"Лас-Вегас", date:"21.11.2026", len:"6.201"},
+  {round:23, flag:"🇶🇦", country:"Катар", circuit:"Лусаил", date:"29.11.2026", len:"5.380"},
+  {round:24, flag:"🇦🇪", country:"ОАЭ", circuit:"Яс Марина, Абу-Даби", date:"06.12.2026", len:"5.281"},
+];
+
+// ---------- RENDER TEAMS ----------
+const teamsGrid = document.getElementById('teamsGrid');
+teams.forEach(t=>{
+  const card = document.createElement('div');
+  card.className = 'team-card';
+  card.style.setProperty('--accent', t.accent);
+  card.innerHTML = `
+    <div class="team-top">
+      <div class="team-name">${t.name}</div>
+      <div class="team-titles"><div class="n">${t.titles}</div><div class="t">титулов</div></div>
+    </div>
+    <div class="drivers">
+      ${t.drivers.map(d=>`<div class="driver"><span class="num">${d.n}</span>${d.name}</div>`).join('')}
+    </div>
+    <div class="team-note">${t.note}</div>
+  `;
+  teamsGrid.appendChild(card);
+});
+
+const drivers = [
+  {num:"44", name:"Льюис Хэмилтон", flag:"🇬🇧", team:"Ferrari", accent:"#E8002D", titles:7, note:"Рекордсмен по числу титулов, первый сезон в красном."},
+  {num:"1", name:"Макс Ферстаппен", flag:"🇳🇱", team:"Red Bull Racing", accent:"#3671C6", titles:4, note:"Четырёхкратный чемпион мира (2021–2024)."},
+  {num:"14", name:"Фернандо Алонсо", flag:"🇪🇸", team:"Aston Martin", accent:"#229971", titles:2, note:"Титулы 2005 и 2006 годов, самый опытный пилот решётки."},
+  {num:"4", name:"Ландо Норрис", flag:"🇬🇧", team:"McLaren", accent:"#FF8000", titles:1, note:"Действующий чемпион мира — первый титул в 2025-м."},
+  {num:"16", name:"Шарль Леклер", flag:"🇲🇨", team:"Ferrari", accent:"#E8002D", titles:0, note:"Лидер Ferrari, регулярно борется за подиумы и победы."},
+  {num:"81", name:"Оскар Пиастри", flag:"🇦🇺", team:"McLaren", accent:"#FF8000", titles:0, note:"Вице-чемпион 2025 года, одна из главных звёзд решётки."},
+  {num:"63", name:"Джордж Расселл", flag:"🇬🇧", team:"Mercedes", accent:"#00D7B9", titles:0, note:"Первый номер Mercedes после ухода Хэмилтона."},
+  {num:"12", name:"Антонелли", flag:"🇮🇹", team:"Mercedes", accent:"#00D7B9", titles:0, note:"Самый молодой лидер личного зачёта в истории Ф1."},
+  {num:"55", name:"Карлос Сайнс", flag:"🇪🇸", team:"Williams", accent:"#1868DB", titles:0, note:"Экс-пилот Ferrari, лидер возрождения Williams."},
+  {num:"23", name:"Алекс Албон", flag:"🇹🇭", team:"Williams", accent:"#1868DB", titles:0, note:"Второй сезон подряд в топ-составе Williams."},
+  {num:"6", name:"Исак Хаджар", flag:"🇫🇷", team:"Red Bull Racing", accent:"#3671C6", titles:0, note:"Дебютант в топ-команде после сильного сезона в младшей."},
+  {num:"30", name:"Лиам Лоусон", flag:"🇳🇿", team:"Racing Bulls", accent:"#6C98FF", titles:0, note:"Вернулся в младшую команду системы Red Bull."},
+  {num:"41", name:"Арвид Линдблад", flag:"🇬🇧", team:"Racing Bulls", accent:"#6C98FF", titles:0, note:"18-летний дебютант, один из самых ярких молодых талантов."},
+  {num:"18", name:"Лэнс Стролл", flag:"🇨🇦", team:"Aston Martin", accent:"#229971", titles:0, note:"Стабильный второй пилот команды на протяжении многих сезонов."},
+  {num:"27", name:"Нико Хюлькенберг", flag:"🇩🇪", team:"Audi", accent:"#BB0A30", titles:0, note:"Ветеран решётки, первый сезон под брендом Audi."},
+  {num:"5", name:"Габриэл Бортолето", flag:"🇧🇷", team:"Audi", accent:"#BB0A30", titles:0, note:"Молодой бразилец, второй сезон в Формуле 1."},
+  {num:"31", name:"Эстебан Окон", flag:"🇫🇷", team:"Haas", accent:"#B6BABD", titles:0, note:"Опытный боец среднего пелотона."},
+  {num:"87", name:"Оливер Берман", flag:"🇬🇧", team:"Haas", accent:"#B6BABD", titles:0, note:"Один из самых быстрых новичков последних лет."},
+  {num:"10", name:"Пьер Гасли", flag:"🇫🇷", team:"Alpine", accent:"#FF87BC", titles:0, note:"Лидер Alpine, экс-победитель Гран-при."},
+  {num:"43", name:"Франко Колапинто", flag:"🇦🇷", team:"Alpine", accent:"#FF87BC", titles:0, note:"Аргентинец, дебютировавший в Ф1 в 2025-м."},
+  {num:"11", name:"Серхио Перес", flag:"🇲🇽", team:"Cadillac", accent:"#C9A227", titles:0, note:"Опытнейший пилот решётки, капитан дебютной команды."},
+  {num:"77", name:"Валттери Боттас", flag:"🇫🇮", team:"Cadillac", accent:"#C9A227", titles:0, note:"Экс-пилот Mercedes, второй ветеран в составе Cadillac."},
+];
+
+// ---------- RENDER DRIVERS ----------
+const driversGrid = document.getElementById('driversGrid');
+drivers.sort((a,b)=> b.titles - a.titles).forEach(d=>{
+  const card = document.createElement('div');
+  card.className = 'driver-card';
+  card.style.setProperty('--accent', d.accent);
+  card.innerHTML = `
+    <div class="driver-top">
+      <div class="driver-id">
+        <div class="driver-num-badge">${d.num}</div>
+        <div class="driver-name-wrap">
+          <div class="name">${d.flag} ${d.name}</div>
+          <div class="team-line">${d.team}</div>
+        </div>
+      </div>
+      <div class="driver-titles"><div class="n">${d.titles}</div><div class="t">титулов</div></div>
+    </div>
+    ${d.titles > 0 ? '<div class="champ-chip">ЧЕМПИОН МИРА</div>' : ''}
+    <div class="driver-note">${d.note}</div>
+  `;
+  driversGrid.appendChild(card);
+});
+
+const trackInfo = {
+  1:{turns:14, direction:"против часовой", drs:4, debut:"1996", note:"Обновлённый после 2022-го «Альберт-Парк» стал одной из самых быстрых уличных трасс календаря — узкие места сохранились, но средняя скорость заметно выросла."},
+  2:{turns:16, direction:"по часовой", drs:2, debut:"2004", note:"Шанхайская трасса известна затяжным левым виражом на 1-м повороте, похожим на раскручивающуюся спираль, и самой длинной прямой календаря."},
+  3:{turns:18, direction:"по часовой", drs:1, debut:"1987", note:"Сузука — единственная трасса календаря с пересечением на разных уровнях («восьмёрка»), легендарный S-образный участок и связка Эска."},
+  6:{turns:19, direction:"по часовой", drs:3, debut:"2022", note:"Уличная трасса вокруг стадиона Hard Rock — сочетание длинных прямых и медленных технических секций."},
+  7:{turns:14, direction:"по часовой", drs:2, debut:"1978", note:"Монреальская трасса на острове Нотр-Дам — гонка со стенами, знаменитая «Стена чемпионов» на последнем шиканé."},
+  8:{turns:19, direction:"по часовой", drs:1, debut:"1950", note:"Самая узкая и медленная трасса сезона, но одна из самых престижных гонок в мотоспорте — обгон здесь почти невозможен."},
+  9:{turns:14, direction:"по часовой", drs:2, debut:"1991", note:"Барселона-Каталунья — техническая трасса с быстрыми поворотами, традиционно используется для предсезонных тестов."},
+  10:{turns:10, direction:"по часовой", drs:3, debut:"1970", note:"Один из самых коротких кругов календаря — среди холмов Штирии, круг занимает чуть больше минуты."},
+  11:{turns:18, direction:"по часовой", drs:2, debut:"1950", note:"Хоум трасса Формулы 1 — здесь прошёл первый в истории Гран-при чемпионата мира. Высокоскоростные повороты Мэгготтс-Беккетс."},
+  12:{turns:19, direction:"по часовой", drs:2, debut:"1950", note:"Самая длинная трасса календаря (7,004 км). Связка Eau Rouge — Raidillon — одно из самых знаковых мест в автоспорте."},
+  13:{turns:14, direction:"по часовой", drs:1, debut:"1986", note:"Тесный и извилистый Хунгароринг часто называют «Монако без стен» — обгон здесь труднее, чем кажется по картинке трассы."},
+  14:{turns:14, direction:"по часовой", drs:2, debut:"1952", note:"Зандворт славится виражами с большим углом наклона полотна (banking), особенно на последнем повороте."},
+  15:{turns:11, direction:"по часовой", drs:2, debut:"1950", note:"«Храм скорости» — самая быстрая трасса календаря с минимальным аэродинамическим прижимом и длинными прямыми."},
+  16:{turns:"н/д", direction:"н/д", drs:"н/д", debut:"2026", note:"Мадринг дебютирует в календаре как гибрид уличной и постоянной трассы рядом с выставочным центром IFEMA — первый полноценный сезон ещё впереди, детальная статистика появится после первого Гран-при."},
+  17:{turns:20, direction:"по часовой", drs:2, debut:"2016", note:"Бакинская уличная трасса сочетает самую длинную прямую календаря со средневековыми узкими улочками Старого города."},
+  18:{turns:19, direction:"по часовой", drs:3, debut:"2008", note:"Марина-Бэй — единственная классическая ночная гонка календаря, одна из самых физически тяжёлых из-за влажности и длительности."},
+  19:{turns:20, direction:"против часовой", drs:2, debut:"2012", note:"COTA сочетает элементы известных мировых трасс — быстрый подъём на первом повороте вдохновлён Сильверстоуном."},
+  20:{turns:17, direction:"по часовой", drs:2, debut:"1963", note:"Трасса расположена на высоте более 2200 м над уровнем моря — разреженный воздух сильно меняет работу аэродинамики и двигателя."},
+  21:{turns:15, direction:"против часовой", drs:1, debut:"1973", note:"Интерлагос — один из немногих кругов против часовой стрелки, известен резкими перепадами высоты и непредсказуемой погодой."},
+  22:{turns:17, direction:"по часовой", drs:2, debut:"2023", note:"Уличная трасса на Лас-Вегас-стрип с одной из самых длинных прямых календаря вдоль знаменитых казино и отелей."},
+  23:{turns:16, direction:"по часовой", drs:2, debut:"2021", note:"Трасса Лусаил принимает финальный отрезок сезона в ночном формате, известна высокими средними скоростями."},
+  24:{turns:16, direction:"против часовой", drs:2, debut:"2009", note:"Як Марина закрывает сезон — трасса вокруг отеля Yas Viceroy, финиш под контрастной вечерней подсветкой."},
+};
+
+// ---------- RENDER RACES ----------
+// parse DD.MM.YYYY -> Date
+function parseDate(str){
+  const [d,m,y] = str.split('.').map(Number);
+  return new Date(y, m-1, d);
+}
+const today = new Date(2026,6,16); // 16 июля 2026
+let nextAssigned = false;
+
+const racesGrid = document.getElementById('racesGrid');
+races.forEach(r=>{
+  const card = document.createElement('div');
+  card.className = 'race-card';
+  let statusHtml = '';
+
+  if(r.cancelled){
+    card.classList.add('cancelled');
+    statusHtml = `<div class="race-status status-cancelled">Отменён</div>`;
+  } else {
+    const raceDate = parseDate(r.date);
+    if(raceDate < today){
+      card.classList.add('done');
+      statusHtml = `<div class="race-status status-done">Завершён</div>`;
+    } else if(!nextAssigned){
+      nextAssigned = true;
+      statusHtml = `<div class="race-status status-next">Следующий</div>`;
+    } else {
+      statusHtml = `<div class="race-status status-upcoming">Впереди</div>`;
+    }
+  }
+
+  card.innerHTML = `
+    <div class="race-top">
+      <div class="race-round">ЭТАП ${String(r.round).padStart(2,'0')}</div>
+      ${statusHtml}
+    </div>
+    <div class="race-country">${r.flag}</div>
+    <div class="race-name">${r.country}</div>
+    <div class="race-circuit">${r.circuit}</div>
+    ${r.sprint ? '<div class="sprint-tag">SPRINT</div>' : ''}
+    <div class="race-meta">
+      <div class="race-date">${r.date}</div>
+      <div class="race-len">${r.len !== '—' ? r.len + ' км / круг' : ''}</div>
+    </div>
+  `;
+  racesGrid.appendChild(card);
+
+  if(!r.cancelled){
+    card.addEventListener('click', ()=> openTrackModal(r));
+  }
+});
+
+// ---------- TRACK MODAL ----------
+const trackModal = document.getElementById('trackModal');
+const modalEyebrow = document.getElementById('modalEyebrow');
+const modalTitle = document.getElementById('modalTitle');
+const modalSub = document.getElementById('modalSub');
+const modalStats = document.getElementById('modalStats');
+const modalNote = document.getElementById('modalNote');
+const modalClose = document.getElementById('modalClose');
+
+function openTrackModal(r){
+  const info = trackInfo[r.round];
+  if(!info) return;
+  modalEyebrow.textContent = `ЭТАП ${String(r.round).padStart(2,'0')} · ${r.flag} ${r.country.toUpperCase()}`;
+  modalTitle.textContent = r.circuit;
+  modalSub.textContent = `Гран-при — ${r.date}${r.sprint ? ' · Sprint-уикенд' : ''}`;
+  modalStats.innerHTML = `
+    <div class="track-stat"><div class="v">${r.len} км</div><div class="l">длина круга</div></div>
+    <div class="track-stat"><div class="v">${info.turns}</div><div class="l">поворотов</div></div>
+    <div class="track-stat"><div class="v">${info.direction}</div><div class="l">направление</div></div>
+    <div class="track-stat"><div class="v">${info.drs}</div><div class="l">зоны DRS</div></div>
+  `;
+  modalNote.textContent = info.note + ` Трасса принимает Ф1 с ${info.debut} года.`;
+  trackModal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTrackModal(){
+  trackModal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+modalClose.addEventListener('click', closeTrackModal);
+trackModal.addEventListener('click', e=>{ if(e.target === trackModal) closeTrackModal(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeTrackModal(); });
+
+// ---------- MOUSE MICRO-EFFECTS ----------
+const glow = document.getElementById('cursor-glow');
+const dot = document.getElementById('cursor-dot');
+let mx=0, my=0, gx=0, gy=0;
+
+window.addEventListener('mousemove', e=>{
+  mx = e.clientX; my = e.clientY;
+  dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
+});
+
+function animateGlow(){
+  gx += (mx-gx)*0.12;
+  gy += (my-gy)*0.12;
+  glow.style.transform = `translate(${gx}px, ${gy}px) translate(-50%,-50%)`;
+  requestAnimationFrame(animateGlow);
+}
+animateGlow();
+
+// per-card local spotlight + subtle tilt
+document.querySelectorAll('.team-card, .driver-card, .race-card').forEach(card=>{
+  card.addEventListener('mousemove', e=>{
+    const rect = card.getBoundingClientRect();
+    const px = ((e.clientX - rect.left)/rect.width)*100;
+    const py = ((e.clientY - rect.top)/rect.height)*100;
+    card.style.setProperty('--mx', px+'%');
+    card.style.setProperty('--my', py+'%');
+    const rx = ((py/100)-0.5) * -6;
+    const ry = ((px/100)-0.5) * 6;
+    card.style.transform = `translateY(-3px) perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  });
+  card.addEventListener('mouseleave', ()=>{
+    card.style.transform = '';
+  });
+});
+</script>
+</body>
+</html>
